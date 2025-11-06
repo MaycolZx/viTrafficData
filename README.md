@@ -20,7 +20,7 @@ osmnx 2.0.6
 
     ```$ git clone https://github.com/MaycolZx/viTrafficData```
 
-   ```$ cd viTrafficData```
+    ```$ cd viTrafficData```
 
 2. Creamos un entorno virtual con las dependencias del programa
 
@@ -36,10 +36,14 @@ osmnx 2.0.6
 
     o
 
-   ```$ ./run.sh```
+    ```$ ./run.sh```
 
 4. Al mismo tiempo corremos un entorno que controla el fronted de la pagina
 
-```npx @tailwindcss/cli -i ./input.css -o ./static/style.css --watch```
+    ```$ npx @tailwindcss/cli -i ./input.css -o ./static/style.css --watch```
+
+    o
+
+    ```$ ./runCSS.sh```
 
 Ahora solo queda entrar a la pagina localhost:5000
