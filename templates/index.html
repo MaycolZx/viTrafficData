@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='leaflet.css') }}"
+    />
+    <script src="{{ url_for('static', filename='leaflet.js') }}"></script>
+    <style>
+      #map {
+        height: 50vh;
+        width: 200vh;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>OSMNX + D3</h1>
+    <div class="border-2">
+      <div>A</div>
+      <div>B</div>
+      <div>C</div>
+    </div>
+    <div id="map"></div>
+    <div id="container"></div>
+    <script src="{{ url_for('static', filename='d3.v7.js') }}"></script>
+    <script
+      type="module"
+      src="{{ url_for('static', filename='script_d3.js') }}"
+    ></script>
+    <script src="{{ url_for('static', filename='script_map.js') }}"></script>
+  </body>
+</html>
