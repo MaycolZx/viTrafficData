@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Animar trayectorias WKT en OSM</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <script type="module">
+      const response = await fetch("datos02.json");
+      const data = await response.json();
+
+      //const MAX_AUTOS = 1000;
+      //const autosData = data.datosTrip.slice(0, MAX_AUTOS);
+
+      function horaASegundosCompleta(fechaStr) {
+        const partes = fechaStr.split(" ")[1].split(":").map(Number);
+        const [h, m, s] = partes;
+        return h * 3600 + m * 60 + s;
+      }
+
+      function parseLineString(wkt) {
+        return wkt
+          .replace("LINESTRING(", "")
+          .replace(")", "")
+          .split(",")
+          .map((p) => p.trim().split(" ").map(Number));
+      }
+
+      const map = L.map("map").setView([30.7, 104.06], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+
+      let tiempoActual = horaASegundosCompleta("2016-11-01 11:00:00");
+      const tiempoFin = horaASegundosCompleta("2016-11-01 16:00:00");
+      const velocidadSimulacion = 10;
+
+      const autos = data.map((a, idx) => {
+        const color = ["red", "blue", "green", "orange"][idx % 4];
+        const path = parseLineString(a.SecuenciaPuntosTrayectoria);
+
+        const polyline = L.polyline(
+          path.map((p) => [p[1], p[0]]),
+          { color, weight: 2, dashArray: "4,8" },
+        ).addTo(map);
+        const marker = L.circleMarker([path[0][1], path[0][0]], {
+          radius: 6,
+          color,
+        });
+
+        return {
+          id: a.IDTrajectoria,
+          inicio: horaASegundosCompleta(a.HoraSalida),
+          fin: horaASegundosCompleta(a.HoraLlegada),
+          path,
+          marker,
+          polyline,
+          visible: false,
+        };
+      });
+
+      function animar() {
+        tiempoActual += 1 * velocidadSimulacion;
+
+        autos.forEach((auto) => {
+          if (tiempoActual >= auto.inicio && tiempoActual <= auto.fin) {
+            if (!auto.visible) {
+              auto.marker.addTo(map);
+              auto.visible = true;
+            }
+
+            const duracion = auto.fin - auto.inicio;
+            const t = (tiempoActual - auto.inicio) / duracion; // [0,1]
+            const totalSegmentos = auto.path.length - 1;
+
+            const idx = Math.floor(t * totalSegmentos);
+            const frac = t * totalSegmentos - idx;
+
+            if (idx < totalSegmentos) {
+              const [lon1, lat1] = auto.path[idx];
+              const [lon2, lat2] = auto.path[idx + 1];
+              const lon = lon1 + (lon2 - lon1) * frac;
+              const lat = lat1 + (lat2 - lat1) * frac;
+              auto.marker.setLatLng([lat, lon]);
+            }
+          } else if (auto.visible) {
+            map.removeLayer(auto.marker);
+            auto.visible = false;
+          }
+        });
+
+        if (tiempoActual < tiempoFin) requestAnimationFrame(animar);
+      }
+
+      animar();
+    </script>
+  </body>
+</html>
